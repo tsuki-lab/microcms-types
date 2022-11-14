@@ -1,9 +1,10 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import fs from 'fs';
 import path from 'path';
-import { camelCase } from './utils';
+import { pascalCase } from './utils';
 
-interface MicroCMSFieldType {
+type MicroCMSFieldType = {
   fieldId: string;
   name: string;
   kind:
@@ -24,16 +25,16 @@ interface MicroCMSFieldType {
   multipleSelect?: boolean;
   customFieldCreatedAt?: string;
   customFieldCreatedAtList?: string[];
-}
+};
 
-interface MicroCMSSchemaType {
+type MicroCMSSchemaType = {
   apiFields: MicroCMSFieldType[];
   customFields: {
     createdAt: string;
     fieldId: string;
     fields: MicroCMSFieldType[];
   }[];
-}
+};
 
 export const convertSchema = (name: string, schema: MicroCMSSchemaType) => {
   const { customFields, apiFields } = schema;
@@ -59,11 +60,13 @@ export const convertSchema = (name: string, schema: MicroCMSSchemaType) => {
       date: () => 'string',
       media: () => '{ url: string, width: number, height: number }',
       file: () => '{ url: string }',
-      custom: () => `${name}_${customs[fields.customFieldCreatedAt!]}`,
+      custom: () =>
+        `CustomField${pascalCase(name)}${pascalCase(customs[fields.customFieldCreatedAt!])}`,
       repeater: () => {
         const { customFieldCreatedAtList: list } = fields;
         const str = list!.reduce(
-          (a, rep, index) => `${a}${index ? ' | ' : ''}${name}_${customs[rep]}`,
+          (a, rep, index) =>
+            `${a}${index ? ' | ' : ''}CustomField${pascalCase(name)}${pascalCase(customs[rep])}`,
           ''
         );
         return list!.length > 1 ? `(${str})[]` : `${str}[]`;
@@ -95,7 +98,7 @@ const outSchema = (
   name: string,
   { mainSchema, customSchemas }: ReturnType<typeof convertSchema>
 ) => {
-  let buffer = `export type ${camelCase(name)}<T='get'> = Structure<\nT,\n{\n`;
+  let buffer = `export type ${pascalCase(name)}Raw<T='get'> = Structure<\nT,\n{\n`;
 
   mainSchema.forEach((field) => {
     field.split('\n').forEach((s) => (buffer += `  ${s}\n`));
@@ -103,7 +106,7 @@ const outSchema = (
   buffer += '}>\n\n';
 
   Object.entries(customSchemas).forEach(([customName, fields]) => {
-    buffer += `interface ${name}_${customName} {\n`;
+    buffer += `export type CustomField${pascalCase(name)}${pascalCase(customName)} = {\n`;
     fields.forEach((field) => {
       field.split('\n').forEach((s) => (buffer += `  ${s}\n`));
     });
@@ -124,7 +127,7 @@ const main = (dir: string, dest?: string) => {
       return true;
     });
   let output = `type Reference<T, R> = T extends 'get' ? R : string | null;
-interface GetsType<T> {
+type GetsType<T> = {
   contents: T[];
   totalCount: number;
   offset: number;
@@ -137,21 +140,18 @@ type DateType = {
   revisedAt: string;
 };
 type Structure<T, P> = T extends 'get'
-  ? { id: string } & DateType & Required<P>
-  : T extends 'gets'
-  ? GetsType<{ id: string } & DateType & Required<P>>
-  : Partial<DateType> & (T extends 'patch' ? Partial<P> : P);\n\n`;
+  ? { id: string } & DateType & P
+  : GetsType<{ id: string } & DateType & P>;\n\n`;
   typeNames.forEach(async (file, name) => {
     const schema = fs.readFileSync(path.resolve(dir, file));
     const s = convertSchema(name, JSON.parse(schema.toString()) as MicroCMSSchemaType);
     output += outSchema(name, s);
   });
-  output += `\nexport interface EndPoints {\n`;
-
-  ['get', 'gets', 'post', 'put', 'patch'].forEach((method) => {
+  output += `\nexport type EndPoints = {\n`;
+  ['get', 'gets'].forEach((method) => {
     output += `  ${method}: {\n`;
     typeNames.forEach((_, name) => {
-      output += `    '${name}': ${camelCase(name)}<'${method}'>\n`;
+      output += `    '${name}': ${pascalCase(name)}Raw<'${method}'>\n`;
     });
     output += '  }\n';
   });
