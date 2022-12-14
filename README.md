@@ -253,3 +253,7 @@ export type PostCustomFieldImage = {
 
 
 ```
+
+## license
+
+MIT
