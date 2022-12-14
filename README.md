@@ -6,22 +6,38 @@ This repository is a fork of "[SoraKumo001/microcms-typescript](https://github.c
 
 Convert [MicroCMS](https://microcms.io/) schema to TypeScript type definitions.
 
+## setting
+
+```shell
+npm login --registry=https://npm.pkg.github.com
+# Use a token obtained from https://github.com/settings/tokens as a password
+```
+
+```shell
+# used npm
+npm config set @tsuki-lab:registry http://npm.pkg.github.com
+
+# used yarn
+yarn config get @tsuki-lab:registry http://npm.pkg.github.com
+```
+
+
 ## usage
 
-`microcms-types src-dir [dist-file]`
+`microcms-types src-dir [dist-dir]`
 
 Use the file name as the type name.
 If there are multiple schema files with the same type name, the one with the latest date will be used for conversion.
 
 ## For output types
 
-api-news-20220809124324.json -> cms-types.ts
+api-posts-20221212235947.json -> cms-types.ts
 
 ```json
 {
   "apiFields": [
     {
-      "idValue": "VKz2DRAfju",
+      "idValue": "oPRtD72MlX",
       "fieldId": "category",
       "name": "カテゴリー",
       "kind": "relation",
@@ -47,21 +63,12 @@ api-news-20220809124324.json -> cms-types.ts
         "2022-08-04T10:42:16.565Z"
       ]
     },
+    { "fieldId": "coverImage", "name": "カバー画像", "kind": "media" },
     {
-      "fieldId": "coverImage",
-      "name": "カバー画像",
-      "kind": "media"
-    },
-    {
-      "fieldId": "relatedNews",
+      "fieldId": "relatedPosts",
       "name": "関連お知らせ",
       "kind": "relationList",
-      "relationListCountLimitValidation": {
-        "relationListCount": {
-          "min": null,
-          "max": 4
-        }
-      }
+      "isUnique": false
     }
   ],
   "customFields": [
@@ -76,6 +83,7 @@ api-news-20220809124324.json -> cms-types.ts
           "name": "リッチエディタ",
           "kind": "richEditor",
           "required": true,
+          "richEditorMultiParagraph": true,
           "richEditorOptions": [
             "headerOne",
             "headerTwo",
@@ -103,8 +111,8 @@ api-news-20220809124324.json -> cms-types.ts
         }
       ],
       "position": [["QwamnszSrV"]],
-      "updatedAt": "2022-08-04T10:38:53.943Z",
-      "viewerGroup": "sHm"
+      "updatedAt": "2022-12-12T14:57:47.705Z",
+      "viewerGroup": "LkR"
     },
     {
       "createdAt": "2022-08-04T10:39:29.580Z",
@@ -120,8 +128,8 @@ api-news-20220809124324.json -> cms-types.ts
         }
       ],
       "position": [["c7v6zV4889"]],
-      "updatedAt": "2022-08-04T10:39:29.580Z",
-      "viewerGroup": "sHm"
+      "updatedAt": "2022-12-12T14:52:24.500Z",
+      "viewerGroup": "LkR"
     },
     {
       "createdAt": "2022-08-04T10:39:58.343Z",
@@ -137,8 +145,8 @@ api-news-20220809124324.json -> cms-types.ts
         }
       ],
       "position": [["btwzYdGABV"]],
-      "updatedAt": "2022-08-04T10:39:58.343Z",
-      "viewerGroup": "sHm"
+      "updatedAt": "2022-12-12T14:52:24.502Z",
+      "viewerGroup": "LkR"
     },
     {
       "createdAt": "2022-08-04T10:42:16.565Z",
@@ -158,62 +166,11 @@ api-news-20220809124324.json -> cms-types.ts
           "name": "画像",
           "kind": "media",
           "required": true
-        },
-        {
-          "idValue": "YC8kzTVSbG",
-          "fieldId": "objectPosition",
-          "name": "object-position",
-          "kind": "select",
-          "description": "デフォルト：left",
-          "required": false,
-          "selectItems": [
-            {
-              "id": "oQQfRu9-n_",
-              "value": "left"
-            },
-            {
-              "id": "40o7UswJdO",
-              "value": "center"
-            },
-            {
-              "id": "2ZqkHNAk3P",
-              "value": "right"
-            }
-          ],
-          "multipleSelect": false
-        },
-        {
-          "idValue": "RFs_h45DyX",
-          "fieldId": "objectFit",
-          "name": "object-fit",
-          "kind": "select",
-          "description": "デフォルト：contain",
-          "selectItems": [
-            {
-              "id": "eXVsWcYh0H",
-              "value": "contain"
-            },
-            {
-              "id": "CYNYkudZ_T",
-              "value": "cover"
-            }
-          ],
-          "multipleSelect": false
-        },
-        {
-          "idValue": "hybmG472uS",
-          "fieldId": "height",
-          "name": "height",
-          "kind": "number",
-          "description": "デフォルト：400"
         }
       ],
-      "position": [
-        ["lOJ2zuaOTA", "4I7jyhflyT"],
-        ["YC8kzTVSbG", "RFs_h45DyX", "hybmG472uS"]
-      ],
-      "updatedAt": "2022-08-09T03:43:03.181Z",
-      "viewerGroup": "sHm"
+      "position": [["lOJ2zuaOTA"], [null, null, null, "4I7jyhflyT"]],
+      "updatedAt": "2022-12-12T14:55:00.055Z",
+      "viewerGroup": "LkR"
     }
   ]
 }
@@ -221,30 +178,13 @@ api-news-20220809124324.json -> cms-types.ts
 ```
 
 ```ts
-type Reference<T, R> = T extends 'get' ? R : string | null;
-type GetsType<T> = {
-  contents: T[];
-  totalCount: number;
-  offset: number;
-  limit: number;
-}
-type DateType = {
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string;
-  revisedAt: string;
-};
-type Structure<T, P> = T extends 'get'
-  ? { id: string } & DateType & P
-  : GetsType<{ id: string } & DateType & P>;
+import { MicroCMSRelation, MicroCMSImage } from './microcms-schema';
 
-export type NewsRaw<T='get'> = Structure<
-T,
-{
+export type Post = {
   /**
    * カテゴリー
    */
-  category: Reference<T,NewsCategoriesRaw>
+  category: MicroCMSRelation<unknown | null>
   /**
    * タイトル
    */
@@ -252,39 +192,54 @@ T,
   /**
    * 内容
    */
-  contents?: (CustomFieldNewsRichEditor | CustomFieldNewsHtml | CustomFieldNewsMarkdown | CustomFieldNewsImage)[]
+  contents?: (PostCustomFieldRichEditor | PostCustomFieldHtml | PostCustomFieldMarkdown | PostCustomFieldImage)[]
   /**
    * カバー画像
    */
-  coverImage?: { url: string, width: number, height: number }
+  coverImage?: MicroCMSImage
   /**
    * 関連お知らせ
    */
-  relatedNews?: Reference<T,NewsRaw>[]
-}>
+  relatedPosts?: MicroCMSRelation<unknown | null>[]
+}
 
-export type CustomFieldNewsRichEditor = {
+export type PostCustomFieldRichEditor = {
+  /**
+   * fieldId
+   */
   fieldId: 'richEditor'
   /**
    * リッチエディタ
    */
   content: string
 }
-export type CustomFieldNewsHtml = {
+
+export type PostCustomFieldHtml = {
+  /**
+   * fieldId
+   */
   fieldId: 'html'
   /**
    * HTML
    */
   content: string
 }
-export type CustomFieldNewsMarkdown = {
+
+export type PostCustomFieldMarkdown = {
+  /**
+   * fieldId
+   */
   fieldId: 'markdown'
   /**
    * Markdown
    */
   content: string
 }
-export type CustomFieldNewsImage = {
+
+export type PostCustomFieldImage = {
+  /**
+   * fieldId
+   */
   fieldId: 'image'
   /**
    * 代替えテキスト
@@ -293,27 +248,8 @@ export type CustomFieldNewsImage = {
   /**
    * 画像
    */
-  image: { url: string, width: number, height: number }
-  /**
-   * object-position
-   */
-  objectPosition?: ['left' | 'center' | 'right']
-  /**
-   * object-fit
-   */
-  objectFit?: ['contain' | 'cover']
-  /**
-   * height
-   */
-  height?: number
+  image: MicroCMSImage
 }
 
-export type EndPoints = {
-  get: {
-    'news': NewsRaw<'get'>
-  }
-  gets: {
-    'news': NewsRaw<'gets'>
-  }
-}
+
 ```

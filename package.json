@@ -1,11 +1,14 @@
 {
   "name": "@tsuki-lab/microcms-types",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "dist/index.js",
   "license": "MIT",
   "keywords": [
     "microcms",
     "typescript"
+  ],
+  "files": [
+    "/dist"
   ],
   "bin": {
     "microcms-types": "dist/index.js"
@@ -14,12 +17,13 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "scripts": {
-    "start": "tsx src/index.ts sample/json sample/types/cms-types.ts",
+    "start": "tsx src/index.ts sample/json sample/types",
     "build": "tsc -b src",
     "fix": "eslint --fix src/ && prettier -w src"
   },
   "devDependencies": {
     "@types/node": "^18.6.4",
+    "@types/pluralize": "^0.0.29",
     "@typescript-eslint/eslint-plugin": "^5.32.0",
     "@typescript-eslint/parser": "^5.32.0",
     "eslint": "^8.21.0",
@@ -29,5 +33,8 @@
     "typescript": "^4.7.4"
   },
   "repository": "https://github.com/tsuki-lab/microcms-types",
-  "author": "hanetsuki<me@tsuki-lab.net>"
+  "author": "hanetsuki<me@tsuki-lab.net>",
+  "dependencies": {
+    "pluralize": "^8.0.0"
+  }
 }

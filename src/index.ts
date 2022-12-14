@@ -3,6 +3,7 @@
 import fs from 'fs';
 import path from 'path';
 import { pascalCase } from './utils';
+import pluralize from 'pluralize';
 
 type MicroCMSFieldType = {
   fieldId: string;
@@ -42,7 +43,7 @@ export const convertSchema = (name: string, schema: MicroCMSSchemaType) => {
     customFields.map(({ fieldId, createdAt }) => [createdAt, fieldId])
   );
   const getKindType = (fields: MicroCMSFieldType) => {
-    const { kind, required } = fields;
+    const { kind } = fields;
     const types = {
       text: () => 'string',
       textArea: () => 'string',
@@ -54,19 +55,18 @@ export const convertSchema = (name: string, schema: MicroCMSSchemaType) => {
         if (multipleSelect) return list!.length > 1 ? `(${str})[]` : `${str}[]`;
         return `[${str}]`;
       },
-      relation: () => (required ? 'Reference<T,unknown>' : 'Reference<T,unknown | null>'),
-      relationList: () => 'Reference<T,unknown>[]',
+      relation: () => 'MicroCMSRelation<unknown | null>',
+      relationList: () => 'MicroCMSRelation<unknown | null>[]',
       boolean: () => 'boolean',
       date: () => 'string',
-      media: () => '{ url: string, width: number, height: number }',
+      media: () => 'MicroCMSImage',
       file: () => '{ url: string }',
-      custom: () =>
-        `CustomField${pascalCase(name)}${pascalCase(customs[fields.customFieldCreatedAt!])}`,
+      custom: () => `${name}CustomField${pascalCase(customs[fields.customFieldCreatedAt!])}`,
       repeater: () => {
         const { customFieldCreatedAtList: list } = fields;
         const str = list!.reduce(
           (a, rep, index) =>
-            `${a}${index ? ' | ' : ''}CustomField${pascalCase(name)}${pascalCase(customs[rep])}`,
+            `${a}${index ? ' | ' : ''}${name}CustomField${pascalCase(customs[rep])}`,
           ''
         );
         return list!.length > 1 ? `(${str})[]` : `${str}[]`;
@@ -74,7 +74,7 @@ export const convertSchema = (name: string, schema: MicroCMSSchemaType) => {
     };
     return types[kind]?.() || 'any';
   };
-  const getDoc = (field: MicroCMSFieldType) => {
+  const getDoc = (field: { name: string }) => {
     return `/**\n * ${field.name}\n */`;
   };
   const getFields = (fields: MicroCMSFieldType[]) => {
@@ -84,7 +84,7 @@ export const convertSchema = (name: string, schema: MicroCMSSchemaType) => {
     });
   };
   const getCustomFields = (fieldId: string, fields: MicroCMSFieldType[]) => {
-    return [`fieldId: '${fieldId}'`, ...getFields(fields)];
+    return [`${getDoc({ name: 'fieldId' })}\nfieldId: '${fieldId}'`, ...getFields(fields)];
   };
 
   const mainSchema = getFields(apiFields);
@@ -98,19 +98,19 @@ const outSchema = (
   name: string,
   { mainSchema, customSchemas }: ReturnType<typeof convertSchema>
 ) => {
-  let buffer = `export type ${pascalCase(name)}Raw<T='get'> = Structure<\nT,\n{\n`;
+  let buffer = `export type ${name} = {\n`;
 
   mainSchema.forEach((field) => {
     field.split('\n').forEach((s) => (buffer += `  ${s}\n`));
   });
-  buffer += '}>\n\n';
+  buffer += '}\n\n';
 
   Object.entries(customSchemas).forEach(([customName, fields]) => {
-    buffer += `export type CustomField${pascalCase(name)}${pascalCase(customName)} = {\n`;
+    buffer += `export type ${name}CustomField${pascalCase(customName)} = {\n`;
     fields.forEach((field) => {
       field.split('\n').forEach((s) => (buffer += `  ${s}\n`));
     });
-    buffer += '}\n';
+    buffer += '}\n\n';
   });
   return buffer;
 };
@@ -126,44 +126,65 @@ const main = (dir: string, dest?: string) => {
       typeNames.set(name, file);
       return true;
     });
-  let output = `type Reference<T, R> = T extends 'get' ? R : string | null;
-type GetsType<T> = {
-  contents: T[];
-  totalCount: number;
-  offset: number;
-  limit: number;
+  const microcmsTypeOutput = `/** microCMS contentId */
+type MicroCMSContentId = {
+  id: string;
 }
-type DateType = {
+
+/** microCMS content common date */
+type MicroCMSDate = {
   createdAt: string;
   updatedAt: string;
-  publishedAt: string;
-  revisedAt: string;
-};
-type Structure<T, P> = T extends 'get'
-  ? { id: string } & DateType & P
-  : GetsType<{ id: string } & DateType & P>;\n\n`;
+  publishedAt?: string;
+  revisedAt?: string;
+}
+
+/** microCMS image */
+export type MicroCMSImage = {
+  url: string;
+  width?: number;
+  height?: number;
+}
+
+/** microCMS list content common types */
+type MicroCMSListContent = MicroCMSContentId & MicroCMSDate;
+
+/** microCMS relation fields */
+export type MicroCMSRelation<T> = T & MicroCMSListContent;\n`;
+
   typeNames.forEach(async (file, name) => {
-    const schema = fs.readFileSync(path.resolve(dir, file));
-    const s = convertSchema(name, JSON.parse(schema.toString()) as MicroCMSSchemaType);
-    output += outSchema(name, s);
-  });
-  output += `\nexport type EndPoints = {\n`;
-  ['get', 'gets'].forEach((method) => {
-    output += `  ${method}: {\n`;
-    typeNames.forEach((_, name) => {
-      output += `    '${name}': ${pascalCase(name)}Raw<'${method}'>\n`;
-    });
-    output += '  }\n';
-  });
+    const singleName = pluralize.singular(name);
+    const typeName = pascalCase(singleName);
+    const apiSchema = fs.readFileSync(path.resolve(dir, file));
+    const s = convertSchema(typeName, JSON.parse(apiSchema.toString()) as MicroCMSSchemaType);
 
-  output += '}\n';
+    const schema = outSchema(typeName, s);
+    const isRelation = /MicroCMSRelation/.test(schema);
+    const isImage = /MicroCMSImage/.test(schema);
 
-  if (dest) fs.writeFileSync(dest, output);
-  else console.log(output);
+    const microcmsTypeFileName = 'microcms-schema';
+
+    let output =
+      isRelation && isImage
+        ? `import { MicroCMSRelation, MicroCMSImage } from './${microcmsTypeFileName}';\n\n`
+        : isRelation
+        ? `import { MicroCMSRelation } from './${microcmsTypeFileName}';\n\n`
+        : isImage
+        ? `import { MicroCMSImage } from './${microcmsTypeFileName}';\n\n`
+        : '';
+    output += schema;
+
+    if (dest) {
+      fs.writeFileSync(path.join(dest, `${microcmsTypeFileName}.ts`), microcmsTypeOutput);
+      fs.writeFileSync(path.join(dest, `${singleName}.ts`), output);
+    } else {
+      console.log(output);
+    }
+  });
 };
 
 if (process.argv.length < 3) {
-  console.log('microcms-typescript src-dir [dist-file]');
+  console.log('microcms-typescript src-dir [dest-dir]');
 } else {
   main(process.argv[2], process.argv[3]);
 }
