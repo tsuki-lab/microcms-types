@@ -1,4 +1,4 @@
-# @tsuki-lab/microcms-typescript
+# microcms-generate-types
 
 This repository is a fork of "[SoraKumo001/microcms-typescript](https://github.com/SoraKumo001/microcms-typescript)" with personal improvements.
 
@@ -9,7 +9,7 @@ Convert [MicroCMS](https://microcms.io/) schema to TypeScript type definitions.
 ## Install
 
 ```shell
-npm install -g @tsuki-lab/microcms-typescript
+npm install -g microcms-generate-types
 ```
 
 
@@ -17,7 +17,7 @@ npm install -g @tsuki-lab/microcms-typescript
 
 ```shell
 # global install
-microcms-typescript [src-dir] [dist-dir]
+microcms-generate-types [src-dir] [dist-dir]
 ```
 
 Use the file name as the type name.
