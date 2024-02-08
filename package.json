@@ -1,6 +1,6 @@
 {
-  "name": "@tsuki-lab/microcms-types",
-  "version": "2.0.0",
+  "name": "@tsuki-lab/microcms-typescript",
+  "version": "0.2.0",
   "main": "dist/index.js",
   "license": "MIT",
   "keywords": [
@@ -11,10 +11,7 @@
     "/dist"
   ],
   "bin": {
-    "microcms-types": "dist/index.js"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+    "microcms-typescript": "dist/index.js"
   },
   "scripts": {
     "start": "tsx src/index.ts sample/json sample/types",

@@ -184,7 +184,7 @@ export type MicroCMSRelation<T> = T & MicroCMSListContent;\n`;
 };
 
 if (process.argv.length < 3) {
-  console.log('microcms-typescript src-dir [dest-dir]');
+  console.log('@tsuki-lab/microcms-typescript src-dir [dest-dir]');
 } else {
   main(process.argv[2], process.argv[3]);
 }

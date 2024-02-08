@@ -1,4 +1,4 @@
-# microcms-types
+# @tsuki-lab/microcms-typescript
 
 This repository is a fork of "[SoraKumo001/microcms-typescript](https://github.com/SoraKumo001/microcms-typescript)" with personal improvements.
 
@@ -6,25 +6,19 @@ This repository is a fork of "[SoraKumo001/microcms-typescript](https://github.c
 
 Convert [MicroCMS](https://microcms.io/) schema to TypeScript type definitions.
 
-## setting
+## Install
 
 ```shell
-npm login --registry=https://npm.pkg.github.com
-# Use a token obtained from https://github.com/settings/tokens as a password
-```
-
-```shell
-# used npm
-npm config set @tsuki-lab:registry http://npm.pkg.github.com
-
-# used yarn
-yarn config get @tsuki-lab:registry http://npm.pkg.github.com
+npm install -g @tsuki-lab/microcms-typescript
 ```
 
 
-## usage
+## Usage
 
-`microcms-types src-dir [dist-dir]`
+```shell
+# global install
+microcms-typescript [src-dir] [dist-dir]
+```
 
 Use the file name as the type name.
 If there are multiple schema files with the same type name, the one with the latest date will be used for conversion.
