@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import fs from 'fs';
 import path from 'path';
-import { pascalCase } from './utils';
+import { isKebabCase, pascalCase } from './utils';
 import pluralize from 'pluralize';
 
 type MicroCMSFieldType = {
@@ -80,7 +80,10 @@ export const convertSchema = (name: string, schema: MicroCMSSchemaType) => {
   const getFields = (fields: MicroCMSFieldType[]) => {
     return fields.map((fields) => {
       const { fieldId, required } = fields;
-      return `${getDoc(fields)}\n${fieldId}${!required ? '?' : ''}: ${getKindType(fields)}`;
+      const isKebabFieldId = isKebabCase(fieldId);
+      return `${getDoc(fields)}\n${isKebabFieldId ? `"${fieldId}"` : fieldId}${
+        !required ? '?' : ''
+      }: ${getKindType(fields)}`;
     });
   };
   const getCustomFields = (fieldId: string, fields: MicroCMSFieldType[]) => {
